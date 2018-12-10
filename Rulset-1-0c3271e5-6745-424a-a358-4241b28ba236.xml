@@ -1,0 +1,76 @@
+<joblist>
+  <job>
+    <context>
+      <options preserveOrder='true'>
+        <option enforcedvalues='true' name='material' values='Acero,Cuero,Madera' />
+        <option enforcedvalues='true' name='valor' values='false,null,true' />
+      </options>
+    </context>
+    <defaultTab>summary</defaultTab>
+    <description></description>
+    <executionEnabled>true</executionEnabled>
+    <id>0c3271e5-6745-424a-a358-4241b28ba236</id>
+    <loglevel>INFO</loglevel>
+    <name>Rulset-1</name>
+    <nodeFilterEditable>false</nodeFilterEditable>
+    <scheduleEnabled>true</scheduleEnabled>
+    <sequence keepgoing='false' strategy='ruleset'>
+      <command>
+        <exec>echo step 1</exec>
+      </command>
+      <command>
+        <exec>echo step 2</exec>
+      </command>
+      <command>
+        <exec>echo step 3</exec>
+      </command>
+      <command>
+        <exec>echo step 4</exec>
+      </command>
+      <command>
+        <exec>echo step 5</exec>
+      </command>
+      <command>
+        <exec>echo step 6</exec>
+      </command>
+      <command>
+        <exec>echo step 7</exec>
+      </command>
+      <command>
+        <exec>echo step 8</exec>
+      </command>
+      <command>
+        <exec>echo step 9</exec>
+      </command>
+      <command>
+        <exec>echo step 10</exec>
+      </command>
+      <command>
+        <jobref name='Ruleset Reference' nodeStep='true'>
+          <importOptions>true</importOptions>
+          <uuid>dd899ca3-f16f-4101-80be-1f47f5c5ea8e</uuid>
+        </jobref>
+      </command>
+      <pluginConfig>
+        <WorkflowStrategy>
+          <ruleset>
+            <rules><![CDATA[[*] run-in-sequence
+[1] run-at-start
+
+[2,3] run-after:1 if:option.material==Acero if:option.valor==true
+[4,5] run-after:1 if:option.material==Madera if:option.valor==true
+[6,7] run-after:1 if:option.material==Cuero if:option.valor==null
+
+[8] run-after:7 if:option.material==Cuero if:option.valor==null
+[9] run-after:5 if:option.material==Madera if:option.valor==true
+[10] run-after:2 if:option.material==Acero if:option.valor==true
+
+[5] run-after:1 if:option.material==Cuero if:option.valor==null
+[11] run-after:10 if:option.material==Acero if:option.valor==true]]></rules>
+          </ruleset>
+        </WorkflowStrategy>
+      </pluginConfig>
+    </sequence>
+    <uuid>0c3271e5-6745-424a-a358-4241b28ba236</uuid>
+  </job>
+</joblist>
