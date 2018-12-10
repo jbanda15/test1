@@ -1,0 +1,30 @@
+<joblist>
+  <job>
+    <defaultTab>summary</defaultTab>
+    <description></description>
+    <dispatch>
+      <excludePrecedence>true</excludePrecedence>
+      <keepgoing>false</keepgoing>
+      <rankOrder>ascending</rankOrder>
+      <successOnEmptyNodeFilter>false</successOnEmptyNodeFilter>
+      <threadcount>1</threadcount>
+    </dispatch>
+    <executionEnabled>true</executionEnabled>
+    <id>65692df0-1db2-4b28-be5b-1fc8e35fb264</id>
+    <loglevel>INFO</loglevel>
+    <name>job1</name>
+    <nodeFilterEditable>false</nodeFilterEditable>
+    <nodefilters>
+      <filter>name: win7</filter>
+    </nodefilters>
+    <nodesSelectedByDefault>true</nodesSelectedByDefault>
+    <scheduleEnabled>true</scheduleEnabled>
+    <sequence keepgoing='false' strategy='node-first'>
+      <command>
+        <script><![CDATA[echo "Hello"]]></script>
+        <scriptargs />
+      </command>
+    </sequence>
+    <uuid>65692df0-1db2-4b28-be5b-1fc8e35fb264</uuid>
+  </job>
+</joblist>
