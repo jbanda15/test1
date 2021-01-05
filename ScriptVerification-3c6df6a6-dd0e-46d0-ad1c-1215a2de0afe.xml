@@ -1,0 +1,36 @@
+<joblist>
+  <job>
+    <context>
+      <options preserveOrder='true'>
+        <option name='Memory' values='1024,2048,3072,4096' valuesListDelimiter=',' />
+        <option name='NameFile' values='test1.txt,test2.txt,test3.txt,test4.txt' valuesListDelimiter=',' />
+      </options>
+    </context>
+    <defaultTab>nodes</defaultTab>
+    <description></description>
+    <executionEnabled>true</executionEnabled>
+    <id>3c6df6a6-dd0e-46d0-ad1c-1215a2de0afe</id>
+    <loglevel>INFO</loglevel>
+    <name>ScriptVerification</name>
+    <nodeFilterEditable>false</nodeFilterEditable>
+    <plugins />
+    <scheduleEnabled>true</scheduleEnabled>
+    <schedules />
+    <sequence keepgoing='false' strategy='node-first'>
+      <command>
+        <script><![CDATA[#!/bin/bash
+if [ -e /home/jason/Rundeck/tests/37491/@option.NameFile@.txt ]
+then
+    echo "@option.Memory@" >> /home/jason/Rundeck/tests/37491/@option.NameFile@.txt
+    echo "ok"
+else
+    touch /home/jason/Rundeck/tests/37491/@option.NameFile@.txt
+    echo "@option.Memory@" >> /home/jason/Rundeck/tests/37491/@option.NameFile@.txt
+    echo "nok"
+fi]]></script>
+        <scriptargs />
+      </command>
+    </sequence>
+    <uuid>3c6df6a6-dd0e-46d0-ad1c-1215a2de0afe</uuid>
+  </job>
+</joblist>
