@@ -1,0 +1,21 @@
+<joblist>
+  <job>
+    <defaultTab>nodes</defaultTab>
+    <description></description>
+    <executionEnabled>true</executionEnabled>
+    <id>e73cb04f-c64c-4546-b589-853252ae1462</id>
+    <loglevel>INFO</loglevel>
+    <name>APIcalls</name>
+    <nodeFilterEditable>false</nodeFilterEditable>
+    <plugins />
+    <scheduleEnabled>true</scheduleEnabled>
+    <schedules />
+    <sequence keepgoing='false' strategy='node-first'>
+      <command>
+        <script><![CDATA[for i in $(curl -X "GET" -H "Accept: application/json" -H "Content-Type: application/json" -H "X-Rundeck-Auth-Token: MlZ38KKszcGghuPSdlYQYQRLCZ63SjCa" http://jb-ntbk:4440/api/28/projects|sed 's/,/\n/g'|grep name|cut -d ':' -f2|tr -d '"'); do curl -X "GET" -H "Accept: application/json" -H "Content-Type: application/json" -H "X-Rundeck-Auth-Token: MlZ38KKszcGghuPSdlYQYQRLCZ63SjCa" http://jb-ntbk:4440/api/28/project/$i/config > $i.project; done]]></script>
+        <scriptargs />
+      </command>
+    </sequence>
+    <uuid>e73cb04f-c64c-4546-b589-853252ae1462</uuid>
+  </job>
+</joblist>
