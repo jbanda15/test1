@@ -1,0 +1,32 @@
+<joblist>
+  <job>
+    <defaultTab>nodes</defaultTab>
+    <description></description>
+    <executionEnabled>true</executionEnabled>
+    <id>2fb56f97-e7da-4e69-9c6a-8112d4bc04e1</id>
+    <loglevel>INFO</loglevel>
+    <name>CrearToken</name>
+    <nodeFilterEditable>false</nodeFilterEditable>
+    <plugins />
+    <scheduleEnabled>true</scheduleEnabled>
+    <schedules />
+    <sequence keepgoing='false' strategy='node-first'>
+      <command>
+        <script><![CDATA[curl --location --request POST 'http://jb-asus:4440/api/21/tokens' \
+--header 'Accept: application/json' \
+--header 'X-Rundeck-Auth-Token: MlZ38KKszcGghuPSdlYQYQRLCZ63SjCa' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+  "user": "admin",
+  "roles": [
+        "admin",
+    "sre",
+    "dev"
+  ],
+}']]></script>
+        <scriptargs />
+      </command>
+    </sequence>
+    <uuid>2fb56f97-e7da-4e69-9c6a-8112d4bc04e1</uuid>
+  </job>
+</joblist>
