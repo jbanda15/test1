@@ -1,0 +1,164 @@
+<joblist>
+  <job>
+    <context>
+      <options preserveOrder='true'>
+        <option name='branch_name' required='true'>
+          <description>Which branch to check out (REQUIRED)</description>
+        </option>
+        <option name='test_command'>
+          <description>Command you want to test. Runs comand in the pso-plugins/alert/ folder. (Optional)</description>
+          <label>Command</label>
+        </option>
+      </options>
+    </context>
+    <defaultTab>nodes</defaultTab>
+    <description><![CDATA[This job will checkout a branch to the test version of the repo and run a bunch of jobs (that use all the base .rb files)
+https://confluence.sentryds.com/display/SSO/Test+branch]]></description>
+    <dispatch>
+      <excludePrecedence>true</excludePrecedence>
+      <keepgoing>true</keepgoing>
+      <rankOrder>ascending</rankOrder>
+      <successOnEmptyNodeFilter>false</successOnEmptyNodeFilter>
+      <threadcount>2</threadcount>
+    </dispatch>
+    <executionEnabled>true</executionEnabled>
+    <group>Framework support jobs</group>
+    <id>1d16ac81-cfd5-49c5-a167-371a7345c0df</id>
+    <loglevel>INFO</loglevel>
+    <name>Test branch</name>
+    <nodeFilterEditable>false</nodeFilterEditable>
+    <nodefilters>
+      <filter>tags: pso_alerts</filter>
+    </nodefilters>
+    <nodesSelectedByDefault>true</nodesSelectedByDefault>
+    <plugins />
+    <scheduleEnabled>false</scheduleEnabled>
+    <schedules />
+    <sequence keepgoing='true' strategy='node-first'>
+      <command>
+        <description>clone or pull, then switch to requested branch</description>
+        <script><![CDATA[#!/bin/bash
+
+cd /home/freedom/
+if [ ! -d "/home/freedom/@job.username@/pso-plugins/alert/" ] 
+then
+ echo "Setting up fresh folder"
+ mkdir @job.username@/
+ cd @job.username@/
+ git clone ssh://git@bitbucket.sentryds.com:7999/ps/pso-plugins.git
+ cd pso-plugins/
+ bundle config set path 'vendor/bundle'
+ bundle install
+ git checkout master --quiet
+else
+ cd @job.username@/pso-plugins/
+ echo "Getting all new changes"
+ git fetch --all
+ git remote prune origin
+ git branch --merged master | grep -v '^[ *]*master$' | xargs git branch -d
+ for i in $(git branch -r | grep -vE "HEAD|master"); do git branch -q --track ${i#*/} 2>/dev/null $i; done
+ git checkout master --quiet
+fi
+git fetch --all --quiet
+echo "Trying to check out requested branch:"
+if git checkout @option.branch_name@ 2>&1 | grep -q 'Switched\|Already'
+then
+ echo "Checking out @option.branch_name@"
+ git pull
+ echo "Automatically grabbing passwords from the main non-test checkout"
+ password=`sed -n -e '4s/^.*automation_monitor: //p' < /home/freedom/pso-plugins/config/oracle.yaml`
+ sed  's/CHANGE_ME/'"$password"'/g' config/oracle.yaml.default > config/oracle.yaml
+
+ username=`sed -n -e '5s/^.*name://p' < /home/freedom/pso-plugins/config/account_configs.txt`
+ sed -e '5s/\(^.*name:\).*/\1'"$username"'/g' config/account_configs.txt.default > config/account_configs.txt_TEMP
+ password=`sed -n -e '6s/^.*word://p' < /home/freedom/pso-plugins/config/account_configs.txt`
+ sed -e '6s/\(^.*word:\).*/\1'"$password"'/g' config/account_configs.txt_TEMP > config/account_configs.txt
+ rm config/account_configs.txt_TEMP
+
+ password=`sed -n -e 's/^.*return //p' < /home/freedom/pso-plugins/lib/cm_postgres_monitor.rb`
+ sed -e 's/\(^.*return \).*/\1'"$password"'/g' lib/cm_postgres_monitor.rb.default  > lib/cm_postgres_monitor.rb
+
+ password="Cleared"
+ username="Cleared"
+else
+ echo "Invalid branch: @option.branch_name@"
+ echo "Here are the existing branches:"
+ git branch -a 
+ exit 2
+fi
+echo "Starting tests"]]></script>
+        <scriptargs />
+      </command>
+      <command>
+        <description>Run requested command</description>
+        <script><![CDATA[echo "@option.test_command@"
+if [ ! -z "@option.test_command@" ]
+then 
+  echo "Running @option.test_command@"
+  cd /home/freedom/@job.username@/pso-plugins/alert/
+  @option.test_command@
+  exitcode=$?
+  if [[ "$exitcode" == 2 ]]
+  then
+    echo 'It returned :fail_return_code'
+    exit 0
+  else
+    exit $exitcode
+  fi
+else
+  echo "No command entered - skipping this step"
+fi]]></script>
+        <scriptargs />
+      </command>
+      <command>
+        <description>Test Oracle connection (using template)</description>
+        <script><![CDATA[cd /home/freedom/@job.username@/pso-plugins/alert/
+
+ruby template.rb --old_output]]></script>
+        <scriptargs />
+      </command>
+      <command>
+        <description>Test CM connection</description>
+        <exec>cd /home/freedom/${job.username}/pso-plugins/alert/ ; ruby template_cm.rb -p 305 --old_output</exec>
+      </command>
+      <command>
+        <description>Test dba_scheduler_jobs_runtime (with PDAP)</description>
+        <exec>cd /home/freedom/${job.username}/pso-plugins/alert/ ; ruby dba_scheduler_jobs_runtime.rb -o SENTINEL -j PDAP_RUNNER_1 --runtime-pass-limit '0 06:00:00'</exec>
+      </command>
+      <command>
+        <description>Test looking for NDC health batch claims import job failures</description>
+        <exec> cd /home/freedom/${job.username}/pso-plugins/alert/ ;   ruby cm_jobs_error.rb --file-parser-id 737 -p 305</exec>
+      </command>
+      <command>
+        <description>Test agilum</description>
+        <script><![CDATA[#!/bin/bash
+cd /home/freedom/@job.username@/pso-plugins/alert ;
+ruby agilum_sftp_checker.rb --clientCode="c06_coff" --filenames="cpt_1_dly,txn_0_dly,txn_1_dly,prvdr_1_dly,dx_1_dly,proc_1_dly,pat_1_dly" --customDirs="archive/[%Y%m]" --dirs="IN,archive" --prefix="sl" --fileType="txt"
+exitcode=$?
+if [[ "$exitcode" == 2 ]]
+then
+ echo 'It returned :fail_return_code. In this case, this is expected'
+ exit 0
+else
+ exit $exitcode
+fi]]></script>
+        <scriptargs />
+      </command>
+      <command>
+        <description>Try the edi_832_price_files.rb check</description>
+        <script><![CDATA[cd /home/freedom/@job.username@/pso-plugins/alert 
+ruby edi_832_price_files.rb
+exitcode=$?
+if [[ "$exitcode" == 2 ]]
+then
+ echo 'It returned :fail_return_code'
+ exit 0
+else
+ exit $exitcode
+fi]]></script>
+        <scriptargs />
+      </command>
+    </sequence>
+    <uuid>1d16ac81-cfd5-49c5-a167-371a7345c0df</uuid>
+  </job>
+</joblist>
