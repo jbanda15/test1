@@ -28,7 +28,7 @@ https://confluence.sentryds.com/display/SSO/Test+branch]]></description>
     <name>Test branch</name>
     <nodeFilterEditable>false</nodeFilterEditable>
     <nodefilters>
-      <filter>tags: pso_alerts</filter>
+      <filter>.*</filter>
     </nodefilters>
     <nodesSelectedByDefault>true</nodesSelectedByDefault>
     <plugins />
